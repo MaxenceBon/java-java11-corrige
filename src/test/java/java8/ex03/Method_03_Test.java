@@ -1,29 +1,34 @@
 package java8.ex03;
 
-import java8.data.Data;
-import java8.data.Person;
-import org.junit.Test;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import java8.data.Data;
+import java8.data.Person;
 
 /**
  * Exercice 03 - Méthode statique
  */
 public class Method_03_Test {
-
+	
     // tag::IDao[]
     interface IDao {
         List<Person> findAll();
+        
+        static IDao getDefaultInstance(){
+        	return new DaoA();
+        }
 
         // TODO créer une méthode statique IDao getDefaultInstance()
         // TODO cette méthode retourne une instance de la classe DaoA
     }
     // end::IDao[]
 
-    class DaoA implements IDao {
+    static class DaoA implements IDao {
 
         List<Person> people = Data.buildPersonList(20);
 
@@ -37,7 +42,7 @@ public class Method_03_Test {
     @Test
     public void test_getDefaultInstance() throws Exception {
         // TODO invoquer la méthode getDefaultInstance() pour que le test soit passant
-        IDao result = null;
+        IDao result = IDao.getDefaultInstance();
 
         assertThat(result.findAll(), hasSize(20));
     }
