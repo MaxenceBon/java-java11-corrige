@@ -17,15 +17,21 @@ import static org.junit.Assert.*;
 public class Lambda_02_Test {
 
     // tag::PersonToAccountMapper[]
-    interface PersonToAccountMapper {
-        Account map(Person p);
+    interface AnyToAnyMapper<T, U> {
+        T map(U p);
     }
-    // end::PersonToAccountMapper[]
+ // tag::PersonToAccountMapper[]
 
     // tag::map[]
-    private List<Account> map(List<Person> personList, PersonToAccountMapper mapper) {
-        // TODO implémenter la méthode
-        return null;
+    private <T, U> List<T> map(List<U> personList, AnyToAnyMapper<T, U> mapper) {
+        
+    	List<T> mappeds = new ArrayList<>();
+    	for (U person: personList){
+    		T mapped = mapper.map(person);
+    		mappeds.add(mapped);
+        }
+    	
+        return mappeds;
     }
     // end::map[]
 
@@ -38,7 +44,8 @@ public class Lambda_02_Test {
 
         // TODO transformer la liste de personnes en liste de comptes
         // TODO tous les objets comptes ont un solde à 100 par défaut
-        List<Account> result = map(personList, null);
+
+        List<Account> result = map(personList, p -> { Account c = new Account(); c.setOwner(p); c.setBalance(100); return c; });
 
         assertThat(result, hasSize(personList.size()));
         assertThat(result, everyItem(hasProperty("balance", is(100))));
@@ -53,7 +60,7 @@ public class Lambda_02_Test {
         List<Person> personList = Data.buildPersonList(100);
 
         // TODO transformer la liste de personnes en liste de prénoms
-        List<String> result = null;
+        List<String> result = map(personList, p->p.getFirstname());
 
         assertThat(result, hasSize(personList.size()));
         assertThat(result, everyItem(instanceOf(String.class)));
