@@ -4,4 +4,7 @@
 .project
 .settings
 /target/
+<<<<<<< HEAD
 /bin/
+=======
+>>>>>>> branch '02-lambda' of https://github.com/rbonnamy/workshop-java8.git
