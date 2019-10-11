@@ -1,81 +1,172 @@
 package java8.ex08;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.Function;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.maxBy;
+import static java.util.stream.Collectors.summingInt;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
-import java8.data.Data;
-import java8.data.domain.Pizza;
-
 /**
- * Exercice 08 - Stream Parallel - Collections
+ * Exercice 5 - Files
  */
 public class Stream_08_Test {
 
-    // Voici une méthode qui exécute 10 fois un traitement et retourne le meilleur temps (le plus court)
-    private long monitor(Runnable fn) {
+	// Chemin vers un fichier de données des naissances
+		private static final String NAISSANCES_DEPUIS_1900_CSV = "./naissances_depuis_1900.csv";
+		//private static final String NAISSANCES_DEPUIS_1900_CSV = "naissances_depuis_1900.csv";
 
-        long fastest = Long.MAX_VALUE;
+		// Structure modélisant les informations d'une ligne du fichier
+		class Naissance {
+			String annee;
+			String jour;
+			Integer nombre;
 
-        for (int i = 0; i < 10; i++) {
-            long start = System.nanoTime();
-            fn.run();
-            long end = System.nanoTime();
-            long duration = (end - start) / 1_000_000;
-            if (duration < fastest) fastest = duration;
-        }
-        return fastest;
-    }
+			public Naissance(String annee, String jour, Integer nombre) {
+				this.annee = annee;
+				this.jour = jour;
+				this.nombre = nombre;
+			}
 
-    // TODO créer une fonction List<Pizza> -> List<Pizza>
-    // TODO seules les pizzas ayant un prix >= 1000 sont conservées
-    Function<List<Pizza>, List<Pizza>> filterPizza = (List<Pizza> pizzas) -> (pizzas.stream().filter(p->p.getPrice()>=1000).collect(Collectors.toList()));
+			public String getAnnee() {
+				return annee;
+			}
 
-    // TODO créer une fonction List<Pizza> -> List<Pizza>
-    // TODO seules les pizzas ayant un prix >= 1000 sont conservées
-    // TODO .parallel()
-    Function<List<Pizza>, List<Pizza>> parallelFilterPizza = (List<Pizza> pizzas) -> (pizzas.stream().filter(p->p.getPrice()>=1000).collect(Collectors.toList()));
+			public void setAnnee(String annee) {
+				this.annee = annee;
+			}
 
-    // TODO exécuter le test pour visualiser le temps d'exécution
-    @Test
-    public void test_arraylist_vs_linkedlist() throws Exception {
-        arraylist_vs_linkedlist(filterPizza);
-    }
+			public String getJour() {
+				return jour;
+			}
 
-    // Que constatez-vous ?
-    // De mon côté :
-    // INFO: arrayList=21 ms
-    // INFO: linkedList=21 ms
+			public void setJour(String jour) {
+				this.jour = jour;
+			}
 
+			public Integer getNombre() {
+				return nombre;
+			}
 
-    // TODO exécuter le test pour visualiser le temps d'exécution
-    @Test
-    public void test_parallel_arraylist_vs_linkedlist() throws Exception {
-        arraylist_vs_linkedlist(parallelFilterPizza);
-    }
+			public void setNombre(Integer nombre) {
+				this.nombre = nombre;
+			}
+		}
 
-    // Que constatez-vous ?
-    // INFO: arrayList=15 ms
-    // INFO: linkedList=83 ms
+		@Test
+		public void test_group() throws IOException {
 
-    public void arraylist_vs_linkedlist(Function<List<Pizza>, List<Pizza>> fn) throws Exception {
+			// TODO utiliser la méthode java.nio.file.Files.lines pour créer un
+			// stream de lignes du fichier naissances_depuis_1900.csv
+			// Le bloc try(...) permet de fermer (close()) le stream après
+			// utilisation
+			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(NAISSANCES_DEPUIS_1900_CSV))) {
 
-        int nbPizzas = 1000000;
+				// TODO construire une MAP (clé = année de naissance, valeur = somme
+				// des nombres de naissance de l'année)
+				Map<String, Integer> result = lines.skip(1).map(str -> {
+					String[] infos = str.split(";");
+					Naissance n = new Naissance(infos[1], infos[2], Integer.parseInt(infos[3]));
+					return n;
+				}).collect(groupingBy(Naissance::getAnnee, summingInt(Naissance::getNombre)));
 
-        List<Pizza> pizzaArrayList = new ArrayList<>(new Data().getPizzas(nbPizzas));
-        List<Pizza> pizzaLinkedList = new LinkedList<>(new Data().getPizzas(nbPizzas));
+				assertThat(result.get("2015"), is(8097));
+				assertThat(result.get("1900"), is(5130));
+			}
+		}
 
-        long arrayList = monitor(() -> fn.apply(pizzaArrayList));
-        long linkedList = monitor(() -> fn.apply(pizzaLinkedList));
+		@Test
+		public void test_max() throws IOException {
 
-        Logger.getGlobal().info("arrayList=" + arrayList + " ms");
-        Logger.getGlobal().info("linkedList=" + linkedList + " ms");
+			// TODO utiliser la méthode java.nio.file.Files.lines pour créer un
+			// stream de lignes du fichier naissances_depuis_1900.csv
+			// Le bloc try(...) permet de fermer (close()) le stream après
+			// utilisation
+			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(NAISSANCES_DEPUIS_1900_CSV))) {
 
-    }
+				// TODO trouver le jour où il y a eu le plus grand nombre de
+				// naissances
+				Optional<Naissance> result = lines.skip(1).map(str -> {
+					String[] infos = str.split(";");
+					Naissance n = new Naissance(infos[1], infos[2], Integer.parseInt(infos[3]));
+					return n;
+				}).max(Comparator.comparing(Naissance::getNombre));
+
+				assertThat(result.get().getNombre(), is(48));
+				assertThat(result.get().getJour(), is("19640228"));
+				assertThat(result.get().getAnnee(), is("1964"));
+			}
+		}
+
+		@Test
+		public void test_collectingAndThen() throws IOException {
+			// TODO utiliser la méthode java.nio.file.Files.lines pour créer un
+			// stream de lignes du fichier naissances_depuis_1900.csv
+			// Le bloc try(...) permet de fermer (close()) le stream après
+			// utilisation
+			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(NAISSANCES_DEPUIS_1900_CSV))) {
+
+				// TODO construire une MAP (clé = année de naissance, valeur = maximum de nombre de naissances)
+				// TODO utiliser la méthode "collectingAndThen" à la suite d'un "grouping"
+				
+				// Etape 1 : je produis une map avec en clé l'année de naissance et en valeur la liste de 
+				// naissances correspondante
+//				Map<String, List<Naissance>> result1 = lines.skip(1).map(str -> {
+//					String[] infos = str.split(";");
+//					Naissance n = new Naissance(infos[1], infos[2], Integer.parseInt(infos[3]));
+//					return n;
+//				}).collect(groupingBy(n -> n.getAnnee()));
+				
+				// Etape 2 : je traite la liste de naissances avec une fonction maxBy qui produit un Optional<Naissance>
+//				Map<String, Optional<Naissance>> result2 = lines.skip(1).map(str -> {
+//					String[] infos = str.split(";");
+//					Naissance n = new Naissance(infos[1], infos[2], Integer.parseInt(infos[3]));
+//					return n;
+//				}).collect(groupingBy(n -> n.getAnnee(), maxBy(Comparator.comparingInt(n -> n.getNombre()))));
+				
+				// Etape 3 : j'utile la fonction collectingAndThen pour récupérer la naissance qui est stockée
+				// dans l'optional une fois l'opération de collecte (maxBy) terminée.
+				// Il faut comprendre le deuxième paramètre de la méthode collectingAndThen comme un post-traitement
+				// effectué sur le maxBy.
+				Map<String, Naissance> result = lines.skip(1).map(str -> {
+					String[] infos = str.split(";");
+					Naissance n = new Naissance(infos[1], infos[2], Integer.parseInt(infos[3]));
+					return n;
+				}).collect(groupingBy(n -> n.getAnnee(), collectingAndThen(maxBy(Comparator.comparingInt(n -> n.getNombre())), opt -> opt.get())));
+
+				assertThat(result.get("2015").getNombre(), is(38));
+				assertThat(result.get("2015").getJour(), is("20150909"));
+				assertThat(result.get("2015").getAnnee(), is("2015"));
+
+				assertThat(result.get("1900").getNombre(), is(31));
+				assertThat(result.get("1900").getJour(), is("19000123"));
+				assertThat(result.get("1900").getAnnee(), is("1900"));
+			}
+		}
+
+		// Des données figurent dans le répertoire pizza-data
+		// TODO explorer les fichiers pour voir leur forme
+		// TODO compléter le test
+
+		@Test
+		public void test_pizzaData() throws IOException {
+			// TODO utiliser la méthode java.nio.file.Files.list pour parcourir un
+			// répertoire
+
+			// TODO trouver la pizza la moins chère
+			String pizzaNamePriceMin = null;
+
+			assertThat(pizzaNamePriceMin, is("L'indienne"));
+
+		}
 
 }
