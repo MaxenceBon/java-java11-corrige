@@ -18,7 +18,6 @@ import java8.data.Person;
 public class Optional_01_Test {
 	
 	class NotPresentException extends RuntimeException {
-		
 	}
 
     @Test
