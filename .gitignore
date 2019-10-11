@@ -3,4 +3,8 @@
 .classpath
 .project
 .settings
+<<<<<<< HEAD
+=======
+/bin/
+>>>>>>> branch '04-optional' of https://github.com/rbonnamy/workshop-java8.git
 /target/
