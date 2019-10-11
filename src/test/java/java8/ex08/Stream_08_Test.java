@@ -8,6 +8,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Map;
@@ -21,9 +23,8 @@ import org.junit.Test;
  */
 public class Stream_08_Test {
 
-	// Chemin vers un fichier de données des naissances
-		private static final String NAISSANCES_DEPUIS_1900_CSV = "./naissances_depuis_1900.csv";
-		//private static final String NAISSANCES_DEPUIS_1900_CSV = "naissances_depuis_1900.csv";
+		// Chemin vers un fichier de données des naissances
+		private static final String NAISSANCES_DEPUIS_1900_CSV = "naissances_depuis_1900.csv";
 
 		// Structure modélisant les informations d'une ligne du fichier
 		class Naissance {
@@ -69,7 +70,7 @@ public class Stream_08_Test {
 			// stream de lignes du fichier naissances_depuis_1900.csv
 			// Le bloc try(...) permet de fermer (close()) le stream après
 			// utilisation
-			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(NAISSANCES_DEPUIS_1900_CSV))) {
+			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(getResource()))) {
 
 				// TODO construire une MAP (clé = année de naissance, valeur = somme
 				// des nombres de naissance de l'année)
@@ -91,7 +92,7 @@ public class Stream_08_Test {
 			// stream de lignes du fichier naissances_depuis_1900.csv
 			// Le bloc try(...) permet de fermer (close()) le stream après
 			// utilisation
-			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(NAISSANCES_DEPUIS_1900_CSV))) {
+			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(getResource()))) {
 
 				// TODO trouver le jour où il y a eu le plus grand nombre de
 				// naissances
@@ -113,7 +114,7 @@ public class Stream_08_Test {
 			// stream de lignes du fichier naissances_depuis_1900.csv
 			// Le bloc try(...) permet de fermer (close()) le stream après
 			// utilisation
-			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(NAISSANCES_DEPUIS_1900_CSV))) {
+			try (Stream<String> lines = java.nio.file.Files.lines(Paths.get(getResource()))) {
 
 				// TODO construire une MAP (clé = année de naissance, valeur = maximum de nombre de naissances)
 				// TODO utiliser la méthode "collectingAndThen" à la suite d'un "grouping"
@@ -152,21 +153,13 @@ public class Stream_08_Test {
 				assertThat(result.get("1900").getAnnee(), is("1900"));
 			}
 		}
-
-		// Des données figurent dans le répertoire pizza-data
-		// TODO explorer les fichiers pour voir leur forme
-		// TODO compléter le test
-
-		@Test
-		public void test_pizzaData() throws IOException {
-			// TODO utiliser la méthode java.nio.file.Files.list pour parcourir un
-			// répertoire
-
-			// TODO trouver la pizza la moins chère
-			String pizzaNamePriceMin = null;
-
-			assertThat(pizzaNamePriceMin, is("L'indienne"));
-
+		
+		public static URI getResource(){
+			try {
+				return ClassLoader.getSystemResource(NAISSANCES_DEPUIS_1900_CSV).toURI();
+			} catch (URISyntaxException e) {
+				throw new RuntimeException("Fichier "+NAISSANCES_DEPUIS_1900_CSV+" non trouvé.");
+			}
 		}
 
 }
