@@ -153,8 +153,8 @@ public class Stream_05_Test {
 		Logger.getAnonymousLogger().info("iterateSum => " + monitor(this::iterateSum, 10000L) + " nanos");
 		Logger.getAnonymousLogger()
 				.info("parallelIterateSum => " + monitor(this::parallelIterateSum, 10000L) + " nanos");
-		Logger.getAnonymousLogger().info("rangeSum => " + monitor(this::rangeSum, 10000L) + " ms");
-		Logger.getAnonymousLogger().info("rangeParallelSum => " + monitor(this::rangeParallelSum, 10000L) + " ms");
+		Logger.getAnonymousLogger().info("rangeSum => " + monitor(this::rangeSum, 10000L) + " nanos");
+		Logger.getAnonymousLogger().info("rangeParallelSum => " + monitor(this::rangeParallelSum, 10000L) + " nanos");
 	}
 
 	// Quel résultat obtenez-vous ?
