@@ -1,11 +1,14 @@
 package java8.ex02;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.util.IntSummaryStatistics;
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -20,6 +23,28 @@ import java8.data.domain.Order;
 public class Stream_02_Test {
 
 	@Test
+	public void test_map() throws Exception {
+
+		List<Order> orders = new Data().getOrders();
+
+		// Trouver la liste des clients ayant déjà passés une commande
+		List<Customer> result = orders.stream().map(o -> o.getCustomer()).collect(Collectors.toList());
+
+		assertThat(result, hasSize(8));
+	}
+
+	@Test
+	public void test_map_count() throws Exception {
+
+		List<Order> orders = new Data().getOrders();
+
+		// TODO Trouver la liste des clients associés aux différentes commandes
+		long result = orders.stream().map(o -> o.getCustomer()).count();
+
+		assertThat(result, equalTo(8L));
+	}
+
+	@Test
 	public void test_map_distinct() throws Exception {
 
 		List<Order> orders = new Data().getOrders();
@@ -31,22 +56,42 @@ public class Stream_02_Test {
 	}
 
 	@Test
-	public void test_flatmap() throws Exception {
+	public void test_map_distinct_count() throws Exception {
 
 		List<Order> orders = new Data().getOrders();
 
-		// TODO calculer les statistiques sur les prix des pizzas vendues
-		// TODO utiliser l'opération summaryStatistics
-		IntSummaryStatistics result = orders.stream()
-				.flatMapToInt(o -> o.getPizzas().stream().mapToInt(p -> p.getPrice())).summaryStatistics();
+		// TODO Compter le nombre des différents clients associés aux commandes
+		long result = orders.stream().map(o -> o.getCustomer()).distinct().count();
 
-		// ALternative avec la méthode flatMap puis Collectors.summarizingInt
-		IntSummaryStatistics result2 = orders.stream().flatMap(o -> o.getPizzas().stream())
-				.collect(Collectors.summarizingInt(p -> p.getPrice()));
+		assertThat(result, equalTo(2L));
+	}
 
-		assertThat(result.getSum(), is(10900L));
-		assertThat(result.getMin(), is(1000));
-		assertThat(result.getMax(), is(1375));
-		assertThat(result.getCount(), is(9L));
+	@Test
+	public void test_mapToDouble_sum() throws Exception {
+
+		List<Order> orders = new Data().getOrders();
+
+		/*
+		 * TODO Calculer le chiffre d'affaires total de la pizzeria (somme des prix des
+		 * commandes)
+		 */
+		double result = orders.stream().mapToDouble(o -> o.getPrice()).sum();
+
+		assertThat(result, equalTo(10900.0));
+	}
+
+	@Test
+	public void test_mapToDouble_avg() throws Exception {
+
+		List<Order> orders = new Data().getOrders();
+
+		/*
+		 * TODO Calculer le chiffre d'affaires total de la pizzeria (somme des prix des
+		 * commandes)
+		 */
+		OptionalDouble result = orders.stream().mapToDouble(o -> o.getPrice()).average();
+
+		assertThat(result.isPresent(), equalTo(true));
+		assertThat(result.getAsDouble(), equalTo(1362.5));
 	}
 }

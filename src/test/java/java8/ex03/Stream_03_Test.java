@@ -8,6 +8,7 @@ import static org.junit.Assert.assertThat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -24,62 +25,89 @@ import java8.data.domain.Pizza;
 public class Stream_03_Test {
 
 	@Test
-    public void test_joining() throws Exception {
+	public void test_max() throws Exception {
 
-        List<Customer> customers = new Data().getCustomers();
+		List<Order> orders = new Data().getOrders();
 
-        // TODO construire une chaîne contenant les prénoms des clients triés et séparé par le caractère "|"
-        String result = customers.stream()
-        		.sorted((c1, c2) -> c1.getFirstname().compareTo(c2.getFirstname()))
-        		.map(c -> c.getFirstname())
-        		.collect(Collectors.joining("|"));
+		// TODO Retrouver la commande avec le prix le plus élevé
+		Optional<Order> result = orders.stream().max(Comparator.comparing(Order::getPrice));
 
-        assertThat(result, is("Alexandra|Cyril|Johnny|Marion|Sophie"));
-    }
+		assertThat(result.isPresent(), is(true));
+		assertThat(result.get().getPrice(), is(2200.0));
+	}
 
-    @Test
-    public void test_grouping() throws Exception {
+	@Test
+	public void test_min() throws Exception {
 
-        List<Order> orders = new Data().getOrders();
+		List<Order> orders = new Data().getOrders();
 
-        // TODO construire une Map <Client, Commandes effectuées par le client
-        Map<Customer, List<Order>> result = orders.stream()
-        		.collect(Collectors.groupingBy(o -> o.getCustomer()));
+		// TODO Retrouver la commande avec le prix le plus élevé
+		Optional<Order> result = orders.stream().min(Comparator.comparing(Order::getPrice));
 
-        assertThat(result.size(), is(2));
-        assertThat(result.get(new Customer(1)), hasSize(4));
-        assertThat(result.get(new Customer(2)), hasSize(4));
-    }
+		assertThat(result.isPresent(), is(true));
+		assertThat(result.get().getPrice(), is(1000.0));
+	}
 
-    @Test
-    public void test_partitionning() throws Exception {
-        List<Pizza> pizzas = new Data().getPizzas();
+	@Test
+	public void test_map_collect_joining() throws Exception {
 
-        // TODO Séparer la liste des pizzas en 2 ensembles :
-        // TODO true -> les pizzas dont le nom commence par "L"
-        // TODO false -> les autres
-        Map<Boolean, List<Pizza>> result = pizzas.stream().collect(partitioningBy(p -> p.getName().startsWith("L")));
+		List<Customer> customers = new Data().getCustomers();
 
-        assertThat(result.get(true), hasSize(6));
-        assertThat(result.get(false), hasSize(2));
-    }
+		// TODO construire une chaîne contenant les prénoms des clients triés et séparé
+		// par le caractère "|"
+		String result = customers.stream().sorted((c1, c2) -> c1.getFirstname().compareTo(c2.getFirstname()))
+				.map(c -> c.getFirstname()).collect(Collectors.joining("|"));
 
-    @Test
-    public void test_toMap() throws Exception {
+		assertThat(result, is("Alexandra|Cyril|Johnny|Marion|Sophie"));
+	}
 
-        List<Customer> customers = new Data().getCustomers();
+	@Test
+	public void test_flatMap() throws Exception {
 
-        // TODO Construire la map Sexe -> Chaîne représentant les prénoms des clients
-        Map<Gender, String> result = customers.stream()
-        		.sorted(Comparator.comparing(c -> c.getFirstname()))
-        		.collect(Collectors.toMap(c->c.getGender(), c->c.getFirstname(), (a,b) -> a+"|"+b));
-        
-        // Exemple de méthode mapping
-        List<String> result2 = customers.stream()
-        		.sorted(Comparator.comparing(c -> c.getFirstname()))
-        		.collect(Collectors.mapping(c -> c.getFirstname(), Collectors.toList()));
+		List<Order> orders = new Data().getOrders();
 
-        assertThat(result.get(Gender.F), is("Alexandra|Marion|Sophie"));
-        assertThat(result.get(Gender.M), is("Cyril|Johnny"));
-    }
+		// Un flatMap permet de transformer une liste de streams en liste aplatis.
+		// TODO Extraire la liste des pizzas de toutes les commandes
+		List<Pizza> result = orders.stream().flatMap(o -> o.getPizzas().stream()).collect(Collectors.toList());
+
+		assertThat(result.size(), is(9));
+	}
+
+	@Test
+	public void test_flatMap_distinct() throws Exception {
+
+		List<Order> orders = new Data().getOrders();
+
+		// TODO Extraire la liste des différentes pizzas de toutes les commandes
+		List<Pizza> result = orders.stream().flatMap(o -> o.getPizzas().stream()).distinct()
+				.collect(Collectors.toList());
+
+		assertThat(result.size(), is(4));
+	}
+
+	@Test
+	public void test_grouping() throws Exception {
+
+		List<Order> orders = new Data().getOrders();
+
+		// TODO construire une Map <Client, Commandes effectuées par le client
+		Map<Customer, List<Order>> result = orders.stream().collect(Collectors.groupingBy(o -> o.getCustomer()));
+
+		assertThat(result.size(), is(2));
+		assertThat(result.get(new Customer(1)), hasSize(4));
+		assertThat(result.get(new Customer(2)), hasSize(4));
+	}
+
+	@Test
+	public void test_partitionning() throws Exception {
+		List<Pizza> pizzas = new Data().getPizzas();
+
+		// TODO Séparer la liste des pizzas en 2 ensembles :
+		// TODO true -> les pizzas dont le nom commence par "L"
+		// TODO false -> les autres
+		Map<Boolean, List<Pizza>> result = pizzas.stream().collect(partitioningBy(p -> p.getName().startsWith("L")));
+
+		assertThat(result.get(true), hasSize(6));
+		assertThat(result.get(false), hasSize(2));
+	}
 }
